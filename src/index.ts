@@ -25,7 +25,7 @@ const svgoOptions: OptimizeOptions = {
   ],
 }
 
-export default function svgSpriteLoader(options: Options = {}): Plugin {
+export function svgSpriteLoader(options: Options = {}): Plugin {
   const {
     minify = false,
     pretty = false,
@@ -36,12 +36,12 @@ export default function svgSpriteLoader(options: Options = {}): Plugin {
     ...otherOptions
   } = options
 
-  svgoOptions.js2svg.pretty = pretty && !minify
+  svgoOptions.js2svg!.pretty = pretty && !minify
   for (const key in otherOptions) {
     if (Object.prototype.hasOwnProperty.call(otherOptions, key)) {
       const params = otherOptions[key]
       if (params) {
-        svgoOptions.plugins.push({ name: key, params } as SvgoPlugin)
+        svgoOptions.plugins!.push({ name: key, params } as SvgoPlugin)
       }
     }
   }
@@ -53,9 +53,11 @@ export default function svgSpriteLoader(options: Options = {}): Plugin {
         return null
       }
 
-      if (convertedSvg.has(id)) {
-        return exportSymbol(convertedSvg.get(id))
+      const convertedSymbol = convertedSvg.get(id)
+      if (convertedSymbol) {
+        return exportSymbol(convertedSymbol)
       }
+
       const filename = path.basename(id).slice(0, -4)
       const svgContent = await fsp.readFile(id, { encoding: "utf-8" })
       const symbol = createSymbol(svgContent, filename)
@@ -68,7 +70,7 @@ export default function svgSpriteLoader(options: Options = {}): Plugin {
       return exportSymbol(symbolDetail)
     },
     async transform(code, id) {
-      if (!isSVG) {
+      if (!isSVG(id)) {
         return null
       }
       const { data } = svgo.optimize(code, svgoOptions)
@@ -90,3 +92,4 @@ export default function svgSpriteLoader(options: Options = {}): Plugin {
     },
   }
 }
+export default svgSpriteLoader
