@@ -18,3 +18,7 @@ export interface SpriteSymbol {
   url: string
   viewBox: string
 }
+export interface InlineSpriteSymbol extends SpriteSymbol {
+  destroy(): boolean
+  stringify(): string
+}

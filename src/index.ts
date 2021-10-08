@@ -3,8 +3,7 @@ import { promises as fsp } from "fs"
 import path from "path"
 
 import { Options, Plugin, SpriteSymbol } from "../types"
-import { createSprite, createSymbol, isSVG } from "./helpers"
-import exportSymbol from "./helpers/exportSymbol"
+import { createSprite, createSymbol, exportSymbol, isSVG } from "./helpers"
 
 const convertedSvg = new Map<string, SpriteSymbol>()
 const svgoOptions: OptimizeOptions = {
@@ -82,8 +81,17 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
       }
       const symbolsContent = [...convertedSvg.values()].map((symbol) => symbol.content)
       const spriteData = createSprite(symbolsContent)
-      const outputStat = await fsp.stat(outputPath)
-      if (outputStat.isDirectory()) {
+      let outputStat = null
+      try {
+        outputStat = await fsp.stat(outputPath)
+      } catch (e) {
+        const { code, path, message } = e as NodeJS.ErrnoException
+        if (code === "ENOENT") {
+          throw new Error(`No such directory "${path}".`)
+        }
+        throw new Error(message)
+      }
+      if (outputStat && outputStat.isDirectory()) {
         await fsp.writeFile(path.resolve(__dirname, outputPath, publicPath, spriteFilename), spriteData)
         convertedSvg.clear()
       } else {
