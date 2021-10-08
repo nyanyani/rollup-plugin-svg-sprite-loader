@@ -18,10 +18,12 @@ export function createSymbol(code: string, id: string): SpriteSymbol {
         throw new Error("Invalid code.")
       }
       const svgDom = findOne((node) => node.tagName === "svg", dom)
-      svgDom.tagName = "symbol"
-      symbol.content = render(dom)
-      symbol.id = getAttributeValue(svgDom, "id") || getAttributeValue(svgDom, "title") || id
-      symbol.viewBox = getAttributeValue(svgDom, "viewBox")
+      if (svgDom) {
+        svgDom.tagName = "symbol"
+        symbol.content = render(dom)
+        symbol.id = getAttributeValue(svgDom, "id") || getAttributeValue(svgDom, "title") || id
+        symbol.viewBox = getAttributeValue(svgDom, "viewBox") || ""
+      }
     },
     {
       xmlMode: true,

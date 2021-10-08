@@ -9,17 +9,9 @@ export interface Options extends SvgoOptions {
   outputPath?: string
   publicPath?: string
   spriteFilename?: string
+  [key: string]: void | string | boolean | object
 }
-export interface RollupHookDescription {
-  code: string
-  ast?: string
-}
-export interface Plugin {
-  name: string
-  load(path: string): Promise<RollupHookDescription | null>
-  transform(code: string, id: string): Promise<RollupHookDescription>
-  writeBundle?(): Promise<void>
-}
+export { Plugin } from "rollup"
 export interface SpriteSymbol {
   content: string
   id: string
