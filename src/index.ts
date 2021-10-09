@@ -3,7 +3,11 @@ import { promises as fsp } from "fs"
 import path from "path"
 
 import { Options, Plugin, SpriteSymbol } from "../types"
-import { createSprite, createSymbol, exportSymbol, isSVG } from "./helpers"
+import { exportSymbol, isSVG } from "./utils"
+import Sprite, { InlineSprite } from "./createSprite"
+import defaultInlineOpts from "./inline/defaultOptions"
+import defaultExtractOpts from "./extract/defaultOptions"
+import { inline } from "./inline"
 
 const convertedSvg = new Map<string, SpriteSymbol>()
 const svgoOptions: OptimizeOptions = {
@@ -45,42 +49,37 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
     }
   }
 
+  const sprite = extract ? new Sprite(defaultExtractOpts) : new InlineSprite(defaultInlineOpts)
+
   return {
     name: "rollup-plugin-svg-sprite-loader",
     async load(id) {
-      if (!isSVG(id)) {
-        return null
+      if (isSVG(id)) {
+        const filename = path.basename(id).slice(0, -4)
+        const svgContent = await fsp.readFile(id, { encoding: "utf-8" })
+        sprite.add(svgContent, filename)
+        const symbol = sprite.find(filename)!
+        if (!extract) {
+          symbol.url = `${publicPath}${spriteFilename}#${id}`
+        }
       }
-
-      const convertedSymbol = convertedSvg.get(id)
-      if (convertedSymbol) {
-        return exportSymbol(convertedSymbol)
-      }
-
-      const filename = path.basename(id).slice(0, -4)
-      const svgContent = await fsp.readFile(id, { encoding: "utf-8" })
-      const symbol = createSymbol(svgContent, filename)
-      const url = `${publicPath}${spriteFilename}#${symbol.id}`
-      const symbolDetail = {
-        ...symbol,
-        url,
-      }
-      convertedSvg.set(id, symbolDetail)
-      return exportSymbol(symbolDetail)
+      return null
     },
     async transform(code, id) {
-      if (!isSVG(id)) {
-        return null
+      console.log("transform code", code)
+      if (isSVG(id)) {
+        if (extract) {
+          return exportSymbol(sprite.find(id)!)
+        }
+        return inline()
       }
-      const { data } = svgo.optimize(code, svgoOptions)
-      return { code: data }
+      return null
     },
     async writeBundle() {
-      if (!convertedSvg.size) {
+      if (!convertedSvg.size || !extract) {
         return
       }
-      const symbolsContent = [...convertedSvg.values()].map((symbol) => symbol.content)
-      const spriteData = createSprite(symbolsContent)
+      const { data } = svgo.optimize(sprite.stringify(), svgoOptions)
       let outputStat = null
       try {
         outputStat = await fsp.stat(outputPath)
@@ -92,7 +91,7 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         throw new Error(message)
       }
       if (outputStat && outputStat.isDirectory()) {
-        await fsp.writeFile(path.resolve(__dirname, outputPath, publicPath, spriteFilename), spriteData)
+        await fsp.writeFile(path.resolve(__dirname, outputPath, publicPath, spriteFilename), data)
         convertedSvg.clear()
       } else {
         throw new Error("OutputPath must be a valid directory path.")

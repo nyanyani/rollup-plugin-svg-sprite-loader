@@ -1,5 +1,5 @@
 export * from "./namespace"
 export * from "./isSVG"
-export * from "./sprite"
+export * from "../buildSprite"
 export * from "./exportSymbol"
-export * from "./mergeConfig"
+export * from "./mergeOptions"

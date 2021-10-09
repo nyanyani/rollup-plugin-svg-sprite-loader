@@ -11,14 +11,3 @@ export interface Options extends SvgoOptions {
   spriteFilename?: string
   [key: string]: void | string | boolean | object
 }
-export { Plugin } from "rollup"
-export interface SpriteSymbol {
-  content: string
-  id: string
-  url: string
-  viewBox: string
-}
-export interface InlineSpriteSymbol extends SpriteSymbol {
-  destroy(): boolean
-  stringify(): string
-}
