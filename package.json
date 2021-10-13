@@ -1,15 +1,20 @@
 {
   "name": "rollup-plugin-svg-sprite-loader",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A rollup plugin to create and bundle inline/external svg sprite file.",
-  "main": "index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "files": [
+    "./dist"
+  ],
   "directories": {
     "test": "tests"
   },
+  "types": "dist/types",
   "scripts": {
     "test": "jest",
-    "clear": "npx rimraf ./dist",
-    "build": "rollup --config rollup.config.ts --configPlugin typescript"
+    "clear": "rimraf ./dist",
+    "build": "rimraf ./dist && rollup --config rollup.config.ts --configPlugin typescript"
   },
   "repository": {
     "type": "git",
@@ -27,22 +32,34 @@
   "homepage": "https://github.com/nyanyani/rollup-plugin-svg-sprite-loader#readme",
   "dependencies": {
     "dom-serializer": "^1.3.2",
+    "domhandler": "^4.2.2",
+    "domutils": "^2.8.0",
     "htmlparser2": "^7.1.2",
     "svgo": "^2.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",
+    "@babel/plugin-transform-runtime": "^7.15.8",
+    "@babel/plugin-transform-typescript": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@babel/preset-typescript": "^7.15.0",
+    "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
     "@rollup/plugin-typescript": "^8.2.5",
+    "@types/babel__plugin-transform-runtime": "^7.9.2",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.3",
     "@types/react": "^17.0.27",
     "@types/svgo": "^2.6.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "babel-jest": "^27.2.4",
+    "csstype": "^3.0.9",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^25.0.5",
     "jest": "^27.2.4",
     "rimraf": "^3.0.2",
     "rollup": "^2.58.0",

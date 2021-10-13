@@ -1,4 +1,4 @@
-import { SpriteOptions } from "../../types"
+import { SpriteOptions } from "../../shared"
 import { namespace } from "../utils"
 
 const { svg, xlink } = namespace

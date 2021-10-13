@@ -1,60 +1,87 @@
-import { Parser, DomHandler, DomUtils } from "htmlparser2"
-import render from "dom-serializer"
+import { serializeExtractSprite, serializeInlineSprite, serializeSymbol, mergeOptions } from "./utils"
+import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "../shared"
+import defaultOptions from "./extract/defaultOptions"
+import path from "path"
 
-import { SpriteOptions, SpriteSymbol, SvgAttrs } from "../types"
+export default class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends SpriteOptions = SpriteOptions> {
+  protected options: U
+  protected symbols: Map<string, T>
+  protected _content: string
+  protected _updated: boolean
 
-const { findOne, getAttributeValue } = DomUtils
-export function createSymbol(code: string, id: string): SpriteSymbol {
-  const symbol: SpriteSymbol = {
-    content: "",
-    id: "",
-    url: "",
-    viewBox: "",
-    dom: null,
-  }
-  let svgDom = null
-
-  const handler = new DomHandler(
-    (error, dom) => {
-      if (error) {
-        throw new Error("Invalid code.")
-      }
-      svgDom = findOne((node) => node.tagName === "svg", dom)
-      if (svgDom) {
-        svgDom.tagName = "symbol"
-        symbol.dom = dom
-        symbol.content = render(dom)
-        symbol.id = getAttributeValue(svgDom, "id") || getAttributeValue(svgDom, "title") || id
-        symbol.viewBox = getAttributeValue(svgDom, "viewBox") || ""
-      }
-    },
-    {
-      xmlMode: true,
-    }
-  )
-  const parser = new Parser(handler)
-  parser.write(code)
-  parser.end()
-
-  return symbol
-}
-
-export function createSprite(symbols: SpriteSymbol[], options: SpriteOptions) {
-  const { attrs } = options
-  const attributes = generateAttrs(attrs)
-  const svgContent = symbols.map((symbol) => symbol.content).join("")
-
-  return `<svg ${attributes}}><defs>${svgContent}</defs></svg>`
-}
-
-export function generateAttrs(attrs: SvgAttrs): string {
-  const result: string[] = []
-  for (const key in attrs) {
-    if (Object.prototype.hasOwnProperty.call(attrs, key)) {
-      const value = attrs[key]
-      const kv = Object.entries(attrs)
-    }
+  constructor(options: U) {
+    this.options = mergeOptions<U>(options, defaultOptions as U)
+    this.symbols = new Map()
+    this._content = ""
+    this._updated = true
   }
 
-  return result.join("")
+  add(id: string, symbolData: string): T {
+    const filename = path.basename(id).slice(0, -4)
+    const symbol = serializeSymbol(symbolData, filename) as T
+    this.set(id, symbol)
+    return symbol
+  }
+
+  set(id: string, symbol: T): Map<string, T> {
+    this._updated = false
+    return this.symbols.set(id, symbol)
+  }
+
+  find(id: string): T | null {
+    return this.symbols.get(id) || null
+  }
+
+  has(id: string): boolean {
+    return this.symbols.has(id) && !!this.symbols.get(id)
+  }
+
+  size(): number {
+    return this.symbols.size
+  }
+
+  stringify(): string {
+    if (!this._updated) {
+      this._content = serializeExtractSprite(
+        [...this.symbols.values()].sort((a, b) => (a.id > b.id ? 1 : -1)),
+        this.options
+      )
+      this._updated = true
+    }
+    return this._content
+  }
+
+  destroy(): void {
+    this.symbols.clear()
+    this._updated = false
+  }
+
+  toString(): string {
+    return this.stringify()
+  }
+}
+
+export class InlineSprite extends Sprite<InlineSpriteSymbol, InlineSpriteOptions> {
+  constructor(options: InlineSpriteOptions) {
+    super(options)
+  }
+
+  stringify(): string {
+    return serializeInlineSprite(
+      [...this.symbols.values()].sort((a, b) => (a.id > b.id ? 1 : -1)),
+      this.options
+    )
+  }
+  // remove(id: string): boolean {
+  //   const { symbols } = this
+  //   const symbol = this.find(id)
+  //   if (symbol) {
+  //     symbol.destroy()
+  //   }
+  //   return symbols.delete(id)
+  // }
+
+  // destroy(): void {
+  //   this.symbols.forEach((symbol) => symbol.destroy())
+  // }
 }

@@ -8,9 +8,6 @@ A rollup plugin to create and bundle external svg sprite file.
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Configuration](#configuration)
-    - [symbolId (string | function(path, query), default [name])](#symbolid-string--functionpath-query-default-name)
-    - [symbolRegExp (default '')](#symbolregexp-default-)
-    - [esModule (default true, auto-configured)](#esmodule-default-true-auto-configured)
     - [extract mode](#extract-mode)
   - [Usage](#usage)
   - [Licence](#licence)
@@ -26,21 +23,6 @@ A rollup plugin to create and bundle external svg sprite file.
 ```
 
 ## Configuration
-
-### symbolId (string | function(path, query), default [name])
-
-How `<symbol>` `id` attribute should be named. All patterns from [loader-utils#interpolateName](https://github.com/webpack/loader-utils#interpolatename)
-are supported. Also can be a function which accepts 2 args - file path and query string and return symbol id:
-
-```js
-{
-  symbolId: (filePath) => path.basename(filePath)
-}
-```
-
-### symbolRegExp (default '')
-
-### esModule (default true, auto-configured)
 
 ### extract mode
 

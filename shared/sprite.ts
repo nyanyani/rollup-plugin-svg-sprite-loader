@@ -1,4 +1,3 @@
-import { SVGAttributes } from "react"
 import { Node as SymbolNode } from "domhandler"
 
 export interface SpriteSymbol {
@@ -6,7 +5,7 @@ export interface SpriteSymbol {
   id: string
   url: string
   viewBox: string
-  dom?: SymbolNode[] | null
+  dom: SymbolNode | null
 }
 
 export interface InlineSpriteSymbol extends SpriteSymbol {
@@ -18,7 +17,7 @@ export interface InlineSpriteOptions extends SpriteOptions {
   mode: "inline"
 }
 
-export interface SvgAttrs extends SVGAttributes<SVGElement> {
+export interface SvgAttrs {
   [key: string]: any
   "aria-hidden"?: "true" | "false"
 }
