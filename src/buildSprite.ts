@@ -1,10 +1,7 @@
-import path from "path"
-
 import { serializeExtractSprite, serializeInlineSprite, serializeSymbol, mergeOptions } from "./utils"
-import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "./shared"
-
-import { default as defaultExtractOptions } from "./extract/defaultOptions"
-import { default as defaultInlineOptions } from "./inline/defaultOptions"
+import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "../shared"
+import defaultOptions from "./extract/defaultOptions"
+import path from "path"
 
 export default class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends SpriteOptions = SpriteOptions> {
   protected options: U
@@ -12,15 +9,16 @@ export default class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends Spr
   protected _content: string
   protected _updated: boolean
 
-  constructor(options: Partial<U>) {
-    this.options = mergeOptions<U>(options, defaultExtractOptions as U)
+  constructor(options: U) {
+    this.options = mergeOptions<U>(options, defaultOptions as U)
     this.symbols = new Map()
     this._content = ""
     this._updated = true
   }
 
   add(id: string, symbolData: string): T {
-    const symbol = serializeSymbol(symbolData, id) as T
+    const filename = path.basename(id).slice(0, -4)
+    const symbol = serializeSymbol(symbolData, filename) as T
     this.set(id, symbol)
     return symbol
   }
@@ -64,8 +62,8 @@ export default class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends Spr
 }
 
 export class InlineSprite extends Sprite<InlineSpriteSymbol, InlineSpriteOptions> {
-  constructor(options: Partial<InlineSpriteOptions>) {
-    super(mergeOptions(options, defaultInlineOptions))
+  constructor(options: InlineSpriteOptions) {
+    super(options)
   }
 
   stringify(): string {

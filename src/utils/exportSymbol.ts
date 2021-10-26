@@ -1,27 +1,17 @@
-import { SpriteSymbol } from "../shared"
+import { SpriteSymbol } from "../../shared"
 
 const validateReg = /^[^a-zA-Z_$]|(?<=\w)-(?=\w)/g
 
-interface ExportOptions {
-  extract: boolean
-  esModule: boolean
-}
-
-function exportSymbol(symbol: SpriteSymbol | null, options: ExportOptions) {
+function exportSymbol(symbol: SpriteSymbol | null) {
   if (!symbol) {
     return { code: "" }
   }
   const { id, viewBox, url } = symbol
-  const { extract, esModule } = options
   const spriteVarName = id.replace(validateReg, "_")
-  const content = `const ${spriteVarName} = {id: "${id}", viewBox: "${viewBox}"${
-    extract ? `, url: "${url}", toString() {return this.url}` : ""
-  }};`
-  const exportModule = esModule
-    ? `export { ${spriteVarName} }; export default ${spriteVarName};`
-    : `module.exports = {...${spriteVarName}}};`
+
   return {
-    code: `${content} ${exportModule}`,
+    // eslint-disable-next-line max-len
+    code: `export const ${spriteVarName} = {id: "${id}", viewBox: "${viewBox}", url: "${url}", toString() {return this.url}}; export default ${spriteVarName};`,
   }
 }
 

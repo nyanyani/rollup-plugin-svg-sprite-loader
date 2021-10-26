@@ -1,4 +1,4 @@
-import { InlineSpriteOptions } from "../shared"
+import { InlineSpriteOptions } from "../../shared"
 import { namespace } from "../utils"
 
 const { svg, xlink } = namespace
@@ -11,7 +11,6 @@ const defaultOptions: InlineSpriteOptions = {
     "aria-hidden": "true" as const,
   },
   mode: "inline",
-  pureSprite: false,
 }
 
 export default defaultOptions

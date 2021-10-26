@@ -8,10 +8,6 @@ export interface Options extends SvgoOptions {
   /** Directory path must ends with "/" */
   outputPath?: string
   publicPath?: string
-  spriteFilename?: string | ((filePath: string) => string)
-  symbolIdQuery?: string | ((filePath: string) => string)
-  symbolAttrs?: object
-  esModule?: boolean
-  pureSprite?: boolean
+  spriteFilename?: string
   [key: string]: void | string | boolean | object
 }

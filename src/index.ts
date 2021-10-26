@@ -2,10 +2,11 @@ import svgo, { OptimizeOptions, Plugin as SvgoPlugin } from "svgo"
 import { promises as fsp } from "fs"
 import path from "path"
 
-import { Options, Plugin } from "./shared"
-import { exportSymbol, isSVG, interpolateName } from "./utils"
+import { Options, Plugin } from "../shared"
+import { exportSymbol, isSVG } from "./utils"
 import Sprite, { InlineSprite } from "./buildSprite"
-
+import defaultInlineOpts from "./inline/defaultOptions"
+import defaultExtractOpts from "./extract/defaultOptions"
 import { inline } from "./inline"
 
 const svgoOptions: OptimizeOptions = {
@@ -29,16 +30,12 @@ const svgoOptions: OptimizeOptions = {
 
 export function svgSpriteLoader(options: Options = {}): Plugin {
   const {
-    minify = true,
+    minify = false,
     pretty = false,
     extract = false,
     outputPath = "dist/",
     publicPath = "./public/",
     spriteFilename = "sprite.svg",
-    pureSprite = false,
-    symbolIdQuery,
-    symbolAttrs,
-    esModule = true,
     ...otherOptions
   } = options
 
@@ -52,14 +49,11 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
     }
   }
 
-  const spriteOptions = { pureSprite, attrs: symbolAttrs }
-  const sprite = extract ? new Sprite(spriteOptions) : new InlineSprite(spriteOptions)
+  const sprite = extract ? new Sprite(defaultExtractOpts) : new InlineSprite(defaultInlineOpts)
   const destination = path.resolve(outputPath, publicPath)
-  const fallbackOutput = path.resolve(destination, "./default")
+  const fallbackOutput = path.resolve(destination, "./default/defaultOutput.svg")
 
   let noImport = true
-  let spriteSvgName = typeof spriteFilename === "function" ? spriteFilename(destination) : spriteFilename
-  const shouldInterpolate = extract && /\[hash|dirname|extname|name\]/g.test(spriteSvgName)
 
   return {
     name: "rollup-plugin-svg-sprite-loader",
@@ -74,27 +68,14 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         return null
       }
       const { data } = svgo.optimize(code, svgoOptions)
-      const interpolatedId =
-        typeof symbolIdQuery === "function" ? symbolIdQuery(id) : interpolateName(outputPath, id, code, symbolIdQuery)
-      const symbol = sprite.add(interpolatedId, data)
+      const symbol = sprite.add(id, data)
       if (extract) {
-        // If filename should be replaced by pattern, then set it to an unused unicode char.
-        symbol.url = path
-          .join(publicPath, `${shouldInterpolate ? "\u{2764}" : spriteFilename}#${symbol.id}`)
-          .split(path.sep)
-          .join(path.posix.sep)
+        symbol.url = path.join(publicPath, `${spriteFilename}#${symbol.id}`).replace("\\", "\\\\")
       }
-      return exportSymbol(symbol, { extract, esModule })
+      return exportSymbol(symbol)
     },
     async renderChunk(code) {
       if (extract) {
-        if (shouldInterpolate) {
-          const data = sprite.stringify()
-          spriteSvgName = interpolateName(outputPath, destination, data, spriteSvgName)
-          return {
-            code: replaceCode(code, /\u2764/g, spriteSvgName),
-          }
-        }
         return { code }
       }
       const inlineCode = inline(code, sprite as InlineSprite)
@@ -106,16 +87,16 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
       }
       const data = sprite.stringify()
       try {
+        await fsp.mkdir(destination, { recursive: true })
         if (extract) {
-          await fsp.mkdir(destination, { recursive: true })
-          await fsp.writeFile(path.resolve(destination, spriteSvgName), data)
+          await fsp.writeFile(path.resolve(destination, spriteFilename), data)
         }
       } catch (e) {
         // eslint-disable-next-line no-undef
         const { code } = e as NodeJS.ErrnoException
         if (code === "ENOENT") {
           await fsp.mkdir(fallbackOutput, { recursive: true })
-          await fsp.writeFile(path.resolve(fallbackOutput, "sprite.svg"), data)
+          await fsp.writeFile(fallbackOutput, data)
           throw new Error("OutputPath must be a valid directory path.")
         }
         throw e
@@ -125,12 +106,4 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
     },
   }
 }
-
-function replaceCode(code: string, source: string | RegExp, target: string): string {
-  if (!source || !target) {
-    return code
-  }
-  return code.replace(source, target)
-}
-
 export default svgSpriteLoader
