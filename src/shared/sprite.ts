@@ -23,7 +23,8 @@ export interface SvgAttrs {
 }
 
 export interface SpriteOptions {
-  [key: string]: SvgAttrs | any[] | string
+  [key: string]: SvgAttrs | any[] | string | boolean | undefined
   attrs: SvgAttrs
+  pureSprite?: boolean
   mode: "extract" | "inline"
 }

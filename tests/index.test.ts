@@ -1,11 +1,14 @@
 import path from "path"
+
 import fs, { promises as fsp } from "fs"
-import { InputOptions, rollup, RollupOutput } from "rollup"
+import { InputOptions, OutputChunk, rollup, RollupOutput } from "rollup"
 import typescript from "@rollup/plugin-typescript"
 import nodeResolve from "@rollup/plugin-node-resolve"
 
 import svgSpriteLoader from "../src"
-import { Options as PluginOptions } from "../types"
+import { Options as PluginOptions } from "../src/shared"
+
+const outputPath = path.resolve(__dirname, "./dist")
 
 async function buildSprite(pluginOptions?: PluginOptions, inputOptions?: InputOptions) {
   const { write } = await rollup({
@@ -19,7 +22,15 @@ async function buildSprite(pluginOptions?: PluginOptions, inputOptions?: InputOp
     ],
     ...inputOptions,
   })
-  await write({ format: "esm", dir: "./dist" })
+  const { output } = await write({ format: "esm", dir: "./dist", name: "dist.js" })
+  await fsp.writeFile(
+    path.resolve(outputPath, "./dist.js"),
+    output
+      .filter((it) => it.type === "chunk")
+      .map((it) => (it as OutputChunk).code)
+      .join(""),
+    { encoding: "utf-8" }
+  )
 }
 
 async function isMate(source: string, outputChunk: RollupOutput["output"]) {
@@ -49,8 +60,6 @@ const inputPathGen = (fileName: string | string[]) => {
   }
   return path.resolve(__dirname, "./build/source/", fileName)
 }
-
-const outputPath = path.resolve(__dirname, "./dist")
 
 /*
 describe("Edge cases", () => {
@@ -101,7 +110,6 @@ describe("extract", () => {
     await buildSprite({ outputPath, extract: false }, { input: inputPathGen(["example-1.svg", "example-2.svg"]) })
     const output = await fsp.readFile(path.resolve(outputPath, "./dist.js"), { encoding: "utf-8" })
     const target = await fsp.readFile(path.resolve(__dirname, "./build/target/dist.js"), { encoding: "utf-8" })
-
     expect(output === target).toBe(true)
   })
 })
