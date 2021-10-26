@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-svg-sprite-loader",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A rollup plugin to create and bundle inline/external svg sprite file.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
