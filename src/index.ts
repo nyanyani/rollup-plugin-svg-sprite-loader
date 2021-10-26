@@ -3,10 +3,9 @@ import { promises as fsp } from "fs"
 import path from "path"
 
 import { Options, Plugin } from "../shared"
-import { exportSymbol, isSVG } from "./utils"
+import { exportSymbol, isSVG, interpolateName } from "./utils"
 import Sprite, { InlineSprite } from "./buildSprite"
-import defaultInlineOpts from "./inline/defaultOptions"
-import defaultExtractOpts from "./extract/defaultOptions"
+
 import { inline } from "./inline"
 
 const svgoOptions: OptimizeOptions = {
@@ -30,12 +29,16 @@ const svgoOptions: OptimizeOptions = {
 
 export function svgSpriteLoader(options: Options = {}): Plugin {
   const {
-    minify = false,
+    minify = true,
     pretty = false,
     extract = false,
     outputPath = "dist/",
     publicPath = "./public/",
     spriteFilename = "sprite.svg",
+    pureSprite = false,
+    symbolIdQuery,
+    symbolAttrs,
+    esModule = true,
     ...otherOptions
   } = options
 
@@ -49,9 +52,10 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
     }
   }
 
-  const sprite = extract ? new Sprite(defaultExtractOpts) : new InlineSprite(defaultInlineOpts)
+  const spriteOptions = { pureSprite, attrs: symbolAttrs }
+  const sprite = extract ? new Sprite(spriteOptions) : new InlineSprite(spriteOptions)
   const destination = path.resolve(outputPath, publicPath)
-  const fallbackOutput = path.resolve(destination, "./default/defaultOutput.svg")
+  const fallbackOutput = path.resolve(destination, "./default")
 
   let noImport = true
 
@@ -68,11 +72,13 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         return null
       }
       const { data } = svgo.optimize(code, svgoOptions)
-      const symbol = sprite.add(id, data)
+      const interpolatedId =
+        typeof symbolIdQuery === "function" ? symbolIdQuery(id) : interpolateName(outputPath, id, code, symbolIdQuery)
+      const symbol = sprite.add(interpolatedId, data)
       if (extract) {
-        symbol.url = path.join(publicPath, `${spriteFilename}#${symbol.id}`).replace("\\", "\\\\")
+        symbol.url = path.join(publicPath, `${spriteFilename}#${symbol.id}`).split(path.sep).join(path.posix.sep)
       }
-      return exportSymbol(symbol)
+      return exportSymbol(symbol, { extract, esModule })
     },
     async renderChunk(code) {
       if (extract) {
@@ -86,17 +92,21 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         return
       }
       const data = sprite.stringify()
+      const interpolatedFileName =
+        typeof spriteFilename === "function"
+          ? spriteFilename(destination)
+          : interpolateName(outputPath, destination, data, spriteFilename)
       try {
-        await fsp.mkdir(destination, { recursive: true })
         if (extract) {
-          await fsp.writeFile(path.resolve(destination, spriteFilename), data)
+          await fsp.mkdir(destination, { recursive: true })
+          await fsp.writeFile(path.resolve(destination, interpolatedFileName), data)
         }
       } catch (e) {
         // eslint-disable-next-line no-undef
         const { code } = e as NodeJS.ErrnoException
         if (code === "ENOENT") {
           await fsp.mkdir(fallbackOutput, { recursive: true })
-          await fsp.writeFile(fallbackOutput, data)
+          await fsp.writeFile(path.resolve(fallbackOutput, "sprite.svg"), data)
           throw new Error("OutputPath must be a valid directory path.")
         }
         throw e

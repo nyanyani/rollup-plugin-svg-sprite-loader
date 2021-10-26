@@ -54,24 +54,27 @@ export function serializeSymbol(code: string, id: string): SpriteSymbol {
 }
 
 export function serializeExtractSprite(symbols: SpriteSymbol[], options: SpriteOptions) {
+  const { attrs, pureSprite } = options
   const spriteDefsNode = new Element("defs", {}, [spriteStyleNode])
-  const spriteNode = new Element("svg", options.attrs, [spriteDefsNode], ElementType.Tag)
+  const spriteNode = new Element("svg", attrs, [spriteDefsNode], ElementType.Tag)
 
   symbols.forEach((symbol) => {
     appendChild(spriteDefsNode, symbol.dom!)
-    appendChild(
-      spriteNode,
-      new Element(
-        "use",
-        {
-          id: `${symbol.id}-usage`,
-          "xlink:href": `#${symbol.id}`,
-          class: "svg-sprite-symbol",
-        },
-        [],
-        ElementType.Tag
+    if (!pureSprite) {
+      appendChild(
+        spriteNode,
+        new Element(
+          "use",
+          {
+            id: `${symbol.id}-usage`,
+            "xlink:href": `#${symbol.id}`,
+            class: "svg-sprite-symbol",
+          },
+          [],
+          ElementType.Tag
+        )
       )
-    )
+    }
   })
 
   return render(spriteNode, { xmlMode: "foreign" })

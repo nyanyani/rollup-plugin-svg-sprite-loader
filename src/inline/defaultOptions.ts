@@ -11,6 +11,7 @@ const defaultOptions: InlineSpriteOptions = {
     "aria-hidden": "true" as const,
   },
   mode: "inline",
+  pureSprite: false,
 }
 
 export default defaultOptions

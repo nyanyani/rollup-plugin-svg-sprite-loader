@@ -29,7 +29,7 @@ const inline = (code: string, sprite: InlineSprite, spriteNodeId?: string, sprit
   } else {
     loadSprite()
   }
-})(${spriteNodeId ?? `"__SVG_SPRITE_NODE__"`}, ${spriteGlobalVarName ?? `"__SVG_SPRITE__"`})`
+})(${spriteNodeId ?? `"__SVG_SPRITE_NODE__"`}, ${spriteGlobalVarName ?? `"__SVG_SPRITE__"`});`
 }
 export default inline
 export { inline }

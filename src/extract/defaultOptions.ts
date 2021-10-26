@@ -8,6 +8,7 @@ const defaultOptions: SpriteOptions = {
     [svg.name]: svg.uri,
     [xlink.name]: xlink.uri,
   },
+  pureSprite: false,
   mode: "extract",
 }
 
