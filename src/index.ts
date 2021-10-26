@@ -2,7 +2,7 @@ import svgo, { OptimizeOptions, Plugin as SvgoPlugin } from "svgo"
 import { promises as fsp } from "fs"
 import path from "path"
 
-import { Options, Plugin } from "../shared"
+import { Options, Plugin } from "./shared"
 import { exportSymbol, isSVG, interpolateName } from "./utils"
 import Sprite, { InlineSprite } from "./buildSprite"
 
@@ -58,6 +58,8 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
   const fallbackOutput = path.resolve(destination, "./default")
 
   let noImport = true
+  let spriteSvgName = typeof spriteFilename === "function" ? spriteFilename(destination) : spriteFilename
+  const shouldInterpolate = extract && /\[hash|dirname|extname|name\]/g.test(spriteSvgName)
 
   return {
     name: "rollup-plugin-svg-sprite-loader",
@@ -76,12 +78,23 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         typeof symbolIdQuery === "function" ? symbolIdQuery(id) : interpolateName(outputPath, id, code, symbolIdQuery)
       const symbol = sprite.add(interpolatedId, data)
       if (extract) {
-        symbol.url = path.join(publicPath, `${spriteFilename}#${symbol.id}`).split(path.sep).join(path.posix.sep)
+        // If filename should be replaced by pattern, then set it to an unused unicode char.
+        symbol.url = path
+          .join(publicPath, `${shouldInterpolate ? "\u{2764}" : spriteFilename}#${symbol.id}`)
+          .split(path.sep)
+          .join(path.posix.sep)
       }
       return exportSymbol(symbol, { extract, esModule })
     },
     async renderChunk(code) {
       if (extract) {
+        if (shouldInterpolate) {
+          const data = sprite.stringify()
+          spriteSvgName = interpolateName(outputPath, destination, data, spriteSvgName)
+          return {
+            code: replaceCode(code, /\u2764/g, spriteSvgName),
+          }
+        }
         return { code }
       }
       const inlineCode = inline(code, sprite as InlineSprite)
@@ -92,14 +105,10 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         return
       }
       const data = sprite.stringify()
-      const interpolatedFileName =
-        typeof spriteFilename === "function"
-          ? spriteFilename(destination)
-          : interpolateName(outputPath, destination, data, spriteFilename)
       try {
         if (extract) {
           await fsp.mkdir(destination, { recursive: true })
-          await fsp.writeFile(path.resolve(destination, interpolatedFileName), data)
+          await fsp.writeFile(path.resolve(destination, spriteSvgName), data)
         }
       } catch (e) {
         // eslint-disable-next-line no-undef
@@ -116,4 +125,12 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
     },
   }
 }
+
+function replaceCode(code: string, source: string | RegExp, target: string): string {
+  if (!source || !target) {
+    return code
+  }
+  return code.replace(source, target)
+}
+
 export default svgSpriteLoader

@@ -6,7 +6,7 @@ import typescript from "@rollup/plugin-typescript"
 import nodeResolve from "@rollup/plugin-node-resolve"
 
 import svgSpriteLoader from "../src"
-import { Options as PluginOptions } from "../types"
+import { Options as PluginOptions } from "../src/shared"
 
 const outputPath = path.resolve(__dirname, "./dist")
 
@@ -23,7 +23,6 @@ async function buildSprite(pluginOptions?: PluginOptions, inputOptions?: InputOp
     ...inputOptions,
   })
   const { output } = await write({ format: "esm", dir: "./dist", name: "dist.js" })
-  console.log(output)
   await fsp.writeFile(
     path.resolve(outputPath, "./dist.js"),
     output
@@ -111,7 +110,6 @@ describe("extract", () => {
     await buildSprite({ outputPath, extract: false }, { input: inputPathGen(["example-1.svg", "example-2.svg"]) })
     const output = await fsp.readFile(path.resolve(outputPath, "./dist.js"), { encoding: "utf-8" })
     const target = await fsp.readFile(path.resolve(__dirname, "./build/target/dist.js"), { encoding: "utf-8" })
-
     expect(output === target).toBe(true)
   })
 })

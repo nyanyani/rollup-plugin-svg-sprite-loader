@@ -1,4 +1,4 @@
-import { SpriteSymbol } from "../../shared"
+import { SpriteSymbol } from "../shared"
 
 const validateReg = /^[^a-zA-Z_$]|(?<=\w)-(?=\w)/g
 

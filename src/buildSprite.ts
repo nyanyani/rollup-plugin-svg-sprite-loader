@@ -1,7 +1,7 @@
 import path from "path"
 
 import { serializeExtractSprite, serializeInlineSprite, serializeSymbol, mergeOptions } from "./utils"
-import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "../shared"
+import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "./shared"
 
 import { default as defaultExtractOptions } from "./extract/defaultOptions"
 import { default as defaultInlineOptions } from "./inline/defaultOptions"

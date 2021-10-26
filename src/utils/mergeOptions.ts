@@ -1,4 +1,4 @@
-import { SpriteOptions } from "../../shared"
+import { SpriteOptions } from "../shared"
 
 /**
  * Deep merge sprite options (exclude function and array).

@@ -1,4 +1,4 @@
-import { InlineSpriteOptions } from "../../shared"
+import { InlineSpriteOptions } from "../shared"
 import { namespace } from "../utils"
 
 const { svg, xlink } = namespace

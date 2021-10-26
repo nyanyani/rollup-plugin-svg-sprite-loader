@@ -4,7 +4,7 @@ import { findOne, appendChild } from "domutils"
 
 import render from "dom-serializer"
 
-import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "../shared"
+import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "./shared"
 const spriteStyleNode = new Element(
   "style",
   {},
