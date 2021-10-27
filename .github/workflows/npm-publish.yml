@@ -4,10 +4,20 @@
 name: npm publish
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # Manually publish release
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: Version to bump `package.json` to
+      tag:
+        required: false
+        description: Tag of publish package
+        default: "latest"
+      publish:
+        required: false
+        description: Whether to publish to register
+        default: "true"
 
 jobs:
   build-and-publish:
@@ -33,21 +43,23 @@ jobs:
       - run: pnpm install
       - run: pnpm run build --if-present
 
-      - name: Publish beta to npm
+      - name: Publish to npm
+        if: github.event.inputs.publish == 'true'
         id: publish
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
+          tag: ${{ github.event.inputs.tag }}
 
       - name: Create Release
-        if: steps.publish.outputs.type != 'none'
+        if: success() && steps.publish.outputs.type != 'none' && github.event.inputs.publish == 'true'
         id: create_release
         uses: ncipollo/release-action@v1.8.10
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag: ${{ steps.publish.outputs.version }}
-          name: Release ${{ steps.publish.outputs.version }}
+          name: Release v${{ steps.publish.outputs.version }}
           body: ${{ steps.publish.outputs.version }}
           draft: false
           prerelease: false

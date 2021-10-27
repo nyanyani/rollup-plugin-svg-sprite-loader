@@ -30,9 +30,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
+
       - run: pnpm install
       - run: pnpm run build --if-present
       - run: pnpm test
 
-      - name: Before merge
-        run: pnpm publish --dry-run
+      - name: Publish dry run
+        id: publish
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_AUTH_TOKEN }}
+          dry-run: true
