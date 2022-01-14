@@ -35,7 +35,7 @@
     "domhandler": "^4.2.2",
     "domutils": "^2.8.0",
     "htmlparser2": "^7.1.2",
-    "svgo": "^2.7.0"
+    "svgo": "^2.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",
@@ -54,7 +54,7 @@
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.33",
-    "@types/svgo": "^2.6.0",
+    "@types/svgo": "^2.6.1",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "babel-jest": "^27.3.1",

@@ -1,4 +1,4 @@
-import { SpriteSymbol } from "../shared"
+import type { SpriteSymbol } from "../shared"
 
 const validateReg = /^[^a-zA-Z_$]|(?<=\w)-(?=\w)/g
 
@@ -7,23 +7,18 @@ interface ExportOptions {
   esModule: boolean
 }
 
-function exportSymbol(symbol: SpriteSymbol | null, options: ExportOptions) {
-  if (!symbol) {
-    return { code: "" }
-  }
+export default function exportSymbol(symbol: SpriteSymbol, options: ExportOptions) {
+  const { esModule, extract } = options
   const { id, viewBox, url } = symbol
-  const { extract, esModule } = options
-  const spriteVarName = id.replace(validateReg, "_")
-  const content = `const ${spriteVarName} = {id: "${id}", viewBox: "${viewBox}"${
-    extract ? `, url: "${url}", toString() {return this.url}` : ""
-  }};`
-  const exportModule = esModule
-    ? `export { ${spriteVarName} }; export default ${spriteVarName};`
-    : `module.exports = {...${spriteVarName}}};`
-  return {
-    code: `${content} ${exportModule}`,
-  }
+
+  const symbolVarName = id.replace(validateReg, "_")
+  const symbolDefineExp = `const ${symbolVarName} = { id: "${id}", viewBox: "${viewBox}"${
+    extract ? `, url: "${url}", toString() { return this.url }` : ""
+  } };`
+  const symbolDefaultExp = `${esModule ? "export default" : "module.exports ="} ${symbolVarName}; `
+
+  // Notice: don't mess up with declaration order
+  return [symbolDefineExp, symbolDefaultExp].join("\n")
 }
 
-export default exportSymbol
 export { exportSymbol }

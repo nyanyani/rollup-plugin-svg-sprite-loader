@@ -3,7 +3,7 @@ import path from "path"
 import svgo from "svgo"
 import type { OptimizeOptions, Plugin as SvgoPlugin } from "svgo"
 
-import { InlineSprite, Sprite } from "./buildSprite"
+import { InlineSprite, Sprite } from "./utils/buildSprite"
 import { inline } from "./inline"
 import { Options, Plugin } from "./shared"
 import { exportSymbol, interpolateName, isSVG } from "./utils"
@@ -52,6 +52,7 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
     }
   }
 
+  const exportOptions = { extract, esModule }
   const spriteOptions = { pureSprite, attrs: symbolAttrs }
   const sprite = extract ? new Sprite(spriteOptions) : new InlineSprite(spriteOptions)
   const destination = path.resolve(outputPath, publicPath)
@@ -88,7 +89,9 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
           .split(path.sep)
           .join(path.posix.sep)
       }
-      return exportSymbol(symbol, { extract, esModule })
+      const exportCode = exportSymbol(symbol, exportOptions)
+      // Notice: transform phase must return valid javascript code, cannot return undefined.
+      return { code: exportCode }
     },
     async renderChunk(code) {
       if (noImport) {
@@ -104,8 +107,9 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
         }
         return { code }
       }
-      const inlineCode = inline(code, sprite as InlineSprite)
-      return { code: inlineCode }
+      const inlineCode = inline(sprite as InlineSprite)
+
+      return { code: [code, inlineCode].join("\n") }
     },
     async writeBundle() {
       if (noImport) {

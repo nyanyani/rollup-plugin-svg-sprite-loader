@@ -1,35 +1,39 @@
-import { InlineSprite } from "../buildSprite"
+import { InlineSprite } from "../utils/buildSprite"
 
-const inline = (code: string, sprite: InlineSprite, spriteNodeId?: string, spriteGlobalVarName?: string): string => {
-  const data = sprite.stringify()
-  return `${code}
-;((spriteNodeId, spriteGlobalVarName) => {
-  let sprite
-  const isSpriteExists = Object.prototype.hasOwnProperty.call(window, spriteGlobalVarName)
+const inlineRuntimeExp: string = `function __SVG_SPRITE_RUNTIME__ (spriteNodeId, spriteGlobalVarName, spriteData) {
+  let sprite;
+  const isSpriteExists = Object.prototype.hasOwnProperty.call(window, spriteGlobalVarName);
   if (isSpriteExists) {
-    sprite = window[spriteGlobalVarName]
+    sprite = window[spriteGlobalVarName];
   } else {
-    sprite = \`${data}\`
-    window[spriteGlobalVarName] = sprite
+    sprite = spriteData;
+    window[spriteGlobalVarName] = sprite;
   }
 
   const loadSprite = () => {
-    let svgSprite = document.getElementById(spriteNodeId)
+    let svgSprite = document.getElementById(spriteNodeId);
     if (!svgSprite) {
-      svgSprite = document.createElement("svg")
-      document.body.prepend(svgSprite)
+      svgSprite = document.createElement("svg");
+      document.body.prepend(svgSprite);
     }
-    svgSprite.outerHTML = sprite
+    svgSprite.outerHTML = sprite;
   }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", (e) => {
-      loadSprite()
+      loadSprite();
     })
   } else {
-    loadSprite()
+    loadSprite();
   }
-})(${spriteNodeId ?? `"__SVG_SPRITE_NODE__"`}, ${spriteGlobalVarName ?? `"__SVG_SPRITE__"`});`
+}`
+const inline = (sprite: InlineSprite, spriteNodeId?: string, spriteGlobalVarName?: string): string => {
+  // Notice: need to add extra quotes
+  const data = "`" + sprite.stringify() + "`"
+  // eslint-disable-next-line @typescript-eslint/quotes
+  const args = [spriteNodeId || '"__SVG_SPRITE_NODE__"', spriteGlobalVarName || '"__SVG_SPRITE__"', data].join(", ")
+
+  return [inlineRuntimeExp, `__SVG_SPRITE_RUNTIME__(${args})`].join("\n")
 }
 export default inline
 export { inline }
