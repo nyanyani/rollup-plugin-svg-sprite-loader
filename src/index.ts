@@ -1,12 +1,12 @@
-import svgo, { OptimizeOptions, Plugin as SvgoPlugin } from "svgo"
 import { promises as fsp } from "fs"
 import path from "path"
+import svgo from "svgo"
+import type { OptimizeOptions, Plugin as SvgoPlugin } from "svgo"
 
-import { Options, Plugin } from "./shared"
-import { exportSymbol, isSVG, interpolateName } from "./utils"
-import Sprite, { InlineSprite } from "./buildSprite"
-
+import { InlineSprite, Sprite } from "./buildSprite"
 import { inline } from "./inline"
+import { Options, Plugin } from "./shared"
+import { exportSymbol, interpolateName, isSVG } from "./utils"
 
 const svgoOptions: OptimizeOptions = {
   js2svg: {
@@ -64,7 +64,7 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
   return {
     name: "rollup-plugin-svg-sprite-loader",
     async load(id) {
-      if (isSVG(id)) {
+      if (noImport && isSVG(id)) {
         noImport = false
       }
       return null
@@ -73,26 +73,33 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
       if (noImport || !isSVG(id)) {
         return null
       }
-      const { data } = svgo.optimize(code, svgoOptions)
+      const result = svgo.optimize(code, svgoOptions)
+      if (result.modernError) {
+        throw new Error(`svgo optimized error: ${result.error}`)
+      }
+      const { data } = result
       const interpolatedId =
         typeof symbolIdQuery === "function" ? symbolIdQuery(id) : interpolateName(outputPath, id, code, symbolIdQuery)
       const symbol = sprite.add(interpolatedId, data)
       if (extract) {
         // If filename should be replaced by pattern, then set it to an unused unicode char.
         symbol.url = path
-          .join(publicPath, `${shouldInterpolate ? "\u{2764}" : spriteFilename}#${symbol.id}`)
+          .join(publicPath, `${shouldInterpolate ? "\u{2764}__SVG_PATTERN__" : spriteFilename}#${symbol.id}`)
           .split(path.sep)
           .join(path.posix.sep)
       }
       return exportSymbol(symbol, { extract, esModule })
     },
     async renderChunk(code) {
+      if (noImport) {
+        return { code }
+      }
       if (extract) {
         if (shouldInterpolate) {
           const data = sprite.stringify()
           spriteSvgName = interpolateName(outputPath, destination, data, spriteSvgName)
           return {
-            code: replaceCode(code, /\u2764/g, spriteSvgName),
+            code: replaceCode(code, /\u2764__SVG_PATTERN__/g, spriteSvgName),
           }
         }
         return { code }

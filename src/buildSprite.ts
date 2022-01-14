@@ -1,12 +1,10 @@
-import path from "path"
-
 import { serializeExtractSprite, serializeInlineSprite, serializeSymbol, mergeOptions } from "./utils"
-import { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "./shared"
+import type { InlineSpriteOptions, InlineSpriteSymbol, SpriteOptions, SpriteSymbol } from "./shared"
 
 import { default as defaultExtractOptions } from "./extract/defaultOptions"
 import { default as defaultInlineOptions } from "./inline/defaultOptions"
 
-export default class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends SpriteOptions = SpriteOptions> {
+export class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends SpriteOptions = SpriteOptions> {
   protected options: U
   protected symbols: Map<string, T>
   protected _content: string
@@ -74,16 +72,4 @@ export class InlineSprite extends Sprite<InlineSpriteSymbol, InlineSpriteOptions
       this.options
     )
   }
-  // remove(id: string): boolean {
-  //   const { symbols } = this
-  //   const symbol = this.find(id)
-  //   if (symbol) {
-  //     symbol.destroy()
-  //   }
-  //   return symbols.delete(id)
-  // }
-
-  // destroy(): void {
-  //   this.symbols.forEach((symbol) => symbol.destroy())
-  // }
 }

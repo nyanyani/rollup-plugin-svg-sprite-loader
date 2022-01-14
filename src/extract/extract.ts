@@ -1,4 +1,4 @@
-import Sprite from "../buildSprite"
+import { Sprite } from "../buildSprite"
 import defaultOptions from "./defaultOptions"
 
 const sprite = new Sprite(defaultOptions)
