@@ -31,6 +31,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
 
+      - run: pnpm add rollup --save-peer
       - run: pnpm install
       - run: pnpm run build --if-present
       - run: pnpm test

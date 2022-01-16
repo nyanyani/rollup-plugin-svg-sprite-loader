@@ -28,7 +28,7 @@ A rollup plugin to create and bundle external svg sprite file.
   npm install rollup-plugin-svg-sprite-loader -D
 
 # via yarn
-  yarn add rollup-plugin-svg-sprite-loader
+  yarn add rollup-plugin-svg-sprite-loader -D
 ```
 
 ## Configuration
@@ -75,6 +75,7 @@ rollup({
 ### `pureSprite` (boolean, default: `false`)
 
 `true`: Build sprite file in extract mode without `<styles>` and `<use>`.
+
 `false`: Build sprite file in extract mode with `<styles>` and `<use>`.
 
 <a id="outputPath"></a>
@@ -115,6 +116,14 @@ rollup({
   ],
 })
 ```
+
+### `esModule` (boolean, default: `true`)
+
+Set export statement style between `ES modules` and `CommonJS`.
+
+`false`: use `export default svg`.
+
+`true`: use `module.exports = svg`.
 
 ## Svgo Config
 

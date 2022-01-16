@@ -1,16 +1,19 @@
 {
   "name": "rollup-plugin-svg-sprite-loader",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A rollup plugin to create and bundle inline/external svg sprite file.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "files": [
-    "dist"
+    "dist",
+    "types",
+    "README.md",
+    "LICENSE"
   ],
   "directories": {
     "test": "tests"
   },
-  "types": "dist/types",
+  "types": "types/index.d.ts",
   "scripts": {
     "test": "jest",
     "clear": "rimraf ./dist",
@@ -65,10 +68,12 @@
     "husky": "^7.0.4",
     "jest": "^27.3.1",
     "rimraf": "^3.0.2",
-    "rollup": "^2.58.3",
+    "rollup": "^2.64.0",
     "ts-jest": "^27.0.7",
-    "ts-node": "^10.4.0",
     "tslib": "^2.3.1",
     "typescript": "^4.4.4"
+  },
+  "peerDependencies": {
+    "rollup": "^2.64.0"
   }
 }
