@@ -89,13 +89,17 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
           .split(path.sep)
           .join(path.posix.sep)
       }
+      // Notice: import svg file should be transformed immediately or it will cause runtime error
       const exportCode = exportSymbol(symbol, exportOptions)
+
       // Notice: transform phase must return valid javascript code, cannot return undefined.
-      return { code: exportCode }
+      // Rollup only cares about the mappings property, see https://rollupjs.org/guide/en/#source-code-transformations
+      // So it must return `map` property in each code transformation
+      return { code: exportCode, map: { mappings: "" } }
     },
     async renderChunk(code) {
       if (noImport) {
-        return { code }
+        return null
       }
       if (extract) {
         if (shouldInterpolate) {
@@ -103,13 +107,12 @@ export function svgSpriteLoader(options: Options = {}): Plugin {
           spriteSvgName = interpolateName(outputPath, destination, data, spriteSvgName)
           return {
             code: replaceCode(code, /\u2764__SVG_PATTERN__/g, spriteSvgName),
+            map: { mappings: "" },
           }
         }
-        return { code }
       }
       const inlineCode = inline(sprite as InlineSprite)
-
-      return { code: [code, inlineCode].join("\n") }
+      return { code: [code, inlineCode].join("\n"), map: { mappings: "" } }
     },
     async writeBundle() {
       if (noImport) {

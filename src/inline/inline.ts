@@ -1,6 +1,6 @@
 import { InlineSprite } from "../utils/buildSprite"
 
-const inlineRuntimeExp: string = `function __SVG_SPRITE_RUNTIME__ (spriteNodeId, spriteGlobalVarName, spriteData) {
+const inlineRuntimeExp = `;(function (spriteNodeId, spriteGlobalVarName, spriteData) {
   let sprite;
   const isSpriteExists = Object.prototype.hasOwnProperty.call(window, spriteGlobalVarName);
   if (isSpriteExists) {
@@ -26,14 +26,15 @@ const inlineRuntimeExp: string = `function __SVG_SPRITE_RUNTIME__ (spriteNodeId,
   } else {
     loadSprite();
   }
-}`
+})`
+
 const inline = (sprite: InlineSprite, spriteNodeId?: string, spriteGlobalVarName?: string): string => {
   // Notice: need to add extra quotes
   const data = "`" + sprite.stringify() + "`"
   // eslint-disable-next-line @typescript-eslint/quotes
   const args = [spriteNodeId || '"__SVG_SPRITE_NODE__"', spriteGlobalVarName || '"__SVG_SPRITE__"', data].join(", ")
 
-  return [inlineRuntimeExp, `__SVG_SPRITE_RUNTIME__(${args})`].join("\n")
+  return `${inlineRuntimeExp}(${args})`
 }
 export default inline
 export { inline }

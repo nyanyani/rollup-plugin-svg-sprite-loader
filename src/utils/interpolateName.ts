@@ -15,7 +15,7 @@ function interpolateName(sourceDir: string, filePath: string, buffer: Buffer | s
     .replace(/\[extname\]/g, ext.slice(1))
     .replace(/\[name\]/g, name)
   if (/\[hash\]/g.test(outputFilename)) {
-    const hash = crypto.createHash("sha1").update(buffer).digest("hex").substr(0, 16)
+    const hash = crypto.createHash("sha1").update(buffer).digest("hex").slice(0, 16)
     return outputFilename.replace(/\[hash\]/g, hash)
   }
   return outputFilename

@@ -1,42 +1,40 @@
-import { RollupOptions } from "rollup"
-import typescript from "@rollup/plugin-typescript"
 import babel from "@rollup/plugin-babel"
-import nodeResolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import json from "@rollup/plugin-json"
+import nodeResolve from "@rollup/plugin-node-resolve"
+import { RollupOptions } from "rollup"
+import pkg from "./package.json"
+
+const extensions = [".js", ".jsx", ".ts", ".tsx"]
 
 const config: RollupOptions = {
   input: "src/index.ts",
   output: [
     {
-      file: "dist/index.cjs.js",
+      file: pkg.main,
       exports: "named",
       format: "cjs",
-      sourcemap: true,
     },
     {
-      file: "dist/index.esm.js",
+      file: pkg.module,
       exports: "named",
       format: "esm",
-      sourcemap: true,
     },
   ],
   plugins: [
-    nodeResolve(),
+    // Allows node_modules resolution
+    nodeResolve({ extensions }),
+    // Allow bundling json files
     json(),
+    // Allow bundling cjs modules
     commonjs(),
-    typescript({
-      tsconfig: "./tsconfig.json",
-      declaration: true,
-      declarationDir: "types/",
-      rootDir: "src/",
-      exclude: ["test/**/*"],
-    }),
+    // Compile TypeScript/JavaScript files
     babel({
       babelrc: true,
-      babelHelpers: "runtime",
-      plugins: [["@babel/plugin-transform-typescript", { allowDeclareFields: true }]],
+      babelHelpers: "bundled",
+      include: ["src/**/*"],
       exclude: ["node_modules/**/*"],
+      extensions,
     }),
   ],
   external: ["dom-serializer", "htmlparser2", "domhandler", "domutils", "svgo"],

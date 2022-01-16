@@ -5,12 +5,12 @@ import { default as defaultExtractOptions } from "../extract/defaultOptions"
 import { default as defaultInlineOptions } from "../inline/defaultOptions"
 
 export class Sprite<T extends SpriteSymbol = SpriteSymbol, U extends SpriteOptions = SpriteOptions> {
-  protected options: U
-  protected symbols: Map<string, T>
-  protected _list: T[]
-  protected _content: string
-  protected _contentUpdated: boolean
-  protected _listUpdated: boolean
+  protected declare options: U
+  protected declare symbols: Map<string, T>
+  protected declare _list: T[]
+  protected declare _content: string
+  protected declare _contentUpdated: boolean
+  protected declare _listUpdated: boolean
 
   constructor(options: Partial<U>) {
     this.options = mergeOptions<U>(options, defaultExtractOptions as U)
@@ -80,8 +80,8 @@ export class InlineSprite extends Sprite<InlineSpriteSymbol, InlineSpriteOptions
 
   stringify(): string {
     if (!this._contentUpdated) {
-      this._contentUpdated = true
       this._content = serializeInlineSprite(this.list, this.options)
+      this._contentUpdated = true
     }
     return this._content
   }
